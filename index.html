@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Retase APB Generator created by Handoko</title>
+<style>
+:root{
+--bg:#020617;
+--card:#020617;
+--soft:#0f172a;
+--accent:#3b82f6;
+--accent2:#22c55e;
+--text:#e2e8f0;
+--muted:#94a3b8;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+background:linear-gradient(180deg,#020617,#020617);
+color:var(--text);
+padding:12px;
+}
+
+.container{
+max-width:720px;
+margin:auto;
+}
+
+.header{
+background:linear-gradient(135deg,#020617,#0f172a);
+padding:16px;
+border-radius:16px;
+text-align:center;
+border:1px solid rgba(255,255,255,.06);
+box-shadow:0 10px 25px rgba(0,0,0,.5);
+}
+
+.header h1{
+margin:0;
+font-size:17px;
+letter-spacing:.5px;
+font-weight:600
+}
+
+.header small{
+color:#facc15;
+font-size:11px;
+font-weight:600;
+text-shadow:0 0 6px rgba(250,204,21,.6),0 0 12px rgba(250,204,21,.4);
+}
+
+.card{
+margin-top:12px;
+background:var(--soft);
+padding:14px;
+border-radius:16px;
+border:1px solid rgba(255,255,255,.05);
+}
+
+.date{
+text-align:center;
+font-weight:600;
+margin-bottom:10px;
+color:#cbd5f5;
+font-size:13px
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+font-size:13px;
+color:#facc15;
+font-weight:700;
+padding:8px 4px;
+text-shadow:0 0 6px rgba(250,204,21,.6),0 0 10px rgba(250,204,21,.4);
+letter-spacing:.4px;
+}
+
+td{
+padding:4px;
+text-align:center;
+}
+
+tr{
+border-bottom:1px solid rgba(255,255,255,.05)
+}
+
+input{
+width:100%;
+padding:7px;
+border-radius:8px;
+border:1px solid rgba(255,255,255,.08);
+background:#020617;
+color:#fff;
+text-align:center;
+font-weight:600;
+}
+
+input:focus{
+outline:none;
+border-color:var(--accent);
+}
+
+.button-group{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-top:12px
+}
+
+button{
+padding:12px;
+border:none;
+border-radius:12px;
+font-size:13px;
+font-weight:600;
+cursor:pointer;
+}
+
+.generate{background:linear-gradient(135deg,#2563eb,#3b82f6);color:white}
+.copy{background:#020617;color:white;border:1px solid rgba(255,255,255,.08)}
+.share{background:linear-gradient(135deg,#16a34a,#22c55e);color:white}
+.reset{background:#020617;color:white;border:1px solid rgba(255,255,255,.08)}
+
+textarea{
+width:100%;
+height:200px;
+margin-top:12px;
+padding:10px;
+border-radius:12px;
+border:1px solid rgba(255,255,255,.08);
+background:#020617;
+color:white;
+font-size:12px;
+}
+
+.footer{
+text-align:center;
+font-size:10px;
+color:var(--muted);
+margin-top:8px
+}
+
+@media(max-width:600px){
+body{padding:8px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+<h1>RETASE APB GENERATOR</h1>
+<small>created by Handoko</small>
+</div>
+
+<div class="card">
+<div class="date" id="tanggal"></div>
+
+<table>
+<thead>
+<tr>
+<th>BUS</th>
+<th>QG</th>
+<th>QZ</th>
+<th>OPS</th>
+<th>CHARTER</th>
+</tr>
+</thead>
+<tbody id="busTable"></tbody>
+</table>
+
+<div class="button-group">
+<button class="generate" onclick="generate()">Generate</button>
+<button class="copy" onclick="copyText()">Copy</button>
+<button class="share" onclick="shareWhatsApp()">Share WhatsApp</button>
+<button class="reset" onclick="resetForm()">Reset</button>
+</div>
+
+<textarea id="output" placeholder="Hasil laporan akan muncul di sini..."></textarea>
+</div>
+
+<div class="footer">
+Retase APB Generator created by Handoko
+</div>
+
+</div>
+
+<script>
+const buses=["B01","B02","B03","B05"];
+const table=document.getElementById('busTable');
+
+buses.forEach(bus=>{
+const row=document.createElement('tr');
+row.innerHTML=`
+<td><b>${bus}</b></td>
+<td><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="${bus}-qg"></td>
+<td><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="${bus}-qz"></td>
+<td><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="${bus}-ops"></td>
+<td><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" id="${bus}-ch"></td>
+`;
+table.appendChild(row);
+});
+
+function formatDate(){
+const d=new Date();
+return d.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+}
+
+document.getElementById('tanggal').innerText="Tanggal : "+formatDate();
+
+function generate(){
+let totalAll=0;
+let lines=[];
+
+buses.forEach(bus=>{
+let qg=parseInt(document.getElementById(`${bus}-qg`).value)||0;
+let qz=parseInt(document.getElementById(`${bus}-qz`).value)||0;
+let ops=parseInt(document.getElementById(`${bus}-ops`).value)||0;
+let ch=parseInt(document.getElementById(`${bus}-ch`).value)||0;
+let total=qg+qz+ops+ch;
+
+if(total>0){
+lines.push(`🚌 ${bus} | QG:${qg} QZ:${qz} OPS:${ops} CHARTER:${ch} | Total:${total}`);
+totalAll+=total;
+}
+});
+
+let result=`📊 RETASE APB \n`;
+result+=`🗓️ Tanggal : ${formatDate()}\n`;
+result+=`━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+result+=lines.join("\n");
+
+result+=`\n\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+result+=`📈 TOTAL RETASE : ${totalAll}\n`;
+result+=`━━━━━━━━━━━━━━━━━━━━━━`;
+
+document.getElementById('output').value=result;
+}
+
+function copyText(){
+const textarea=document.getElementById('output');
+textarea.select();
+textarea.setSelectionRange(0,99999);
+document.execCommand('copy');
+}
+
+function shareWhatsApp(){
+const text=document.getElementById('output').value;
+if(!text){alert('Generate laporan terlebih dahulu');return}
+const url='https://wa.me/?text='+encodeURIComponent(text);
+window.open(url,'_blank');
+}
+
+function resetForm(){
+buses.forEach(bus=>{
+document.getElementById(`${bus}-qg`).value='';
+document.getElementById(`${bus}-qz`).value='';
+document.getElementById(`${bus}-ops`).value='';
+document.getElementById(`${bus}-ch`).value='';
+});
+document.getElementById('output').value='';
+}
+</script>
+</body>
+</html>
